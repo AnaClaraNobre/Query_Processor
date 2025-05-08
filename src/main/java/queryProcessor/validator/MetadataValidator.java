@@ -4,8 +4,8 @@ import queryProcessor.model.SQLQuery;
 import queryProcessor.model.Condition;
 import queryProcessor.model.JoinClause;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MetadataValidator {
 
@@ -24,13 +24,14 @@ public class MetadataValidator {
             }
         }
 
-        for (String field : query.getSelectFields()) {            if (!validateField(field)) {
+        for (String field : query.getSelectFields()) {
+            if (!validateField(field, query)) {
                 throw new IllegalArgumentException("Campo no SELECT inválido: " + field);
             }
         }
 
         for (Condition condition : query.getWhereConditions()) {
-            if (!validateField(condition.getLeftOperand())) {
+            if (!validateField(condition.getLeftOperand(), query)) {
                 throw new IllegalArgumentException("Campo na cláusula WHERE inválido: " + condition);
             }
         }
@@ -40,21 +41,50 @@ public class MetadataValidator {
         return input.trim().split("\\s+")[0];
     }
 
-    private boolean validateField(String qualifiedField) {
-        if (!qualifiedField.contains(".")) return false;
+    private boolean validateField(String qualifiedField, SQLQuery query) {
 
-        String[] parts = qualifiedField.split("\\.");
-        if (parts.length != 2) return false;
+        if (qualifiedField.contains(".")) {
 
-        String aliasOrTable = parts[0];
-        String field = parts[1];
+            String[] parts = qualifiedField.split("\\.");
 
-        for (String table : metadataRepository.getTables().keySet()) {
-            if (metadataRepository.columnExists(table, field)) {
-                return true;
+            if (parts.length != 2)
+                return false;
+
+            String field = parts[1];
+
+            List<String> allTables = new ArrayList<>();
+
+            allTables.addAll(query.getFromTables());
+
+            for (JoinClause join : query.getJoins()) {
+                allTables.add(join.getTable());
             }
+
+            for (String table : allTables) {
+                if (metadataRepository.columnExists(stripAlias(table), field)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        return false;
+        String field = qualifiedField;
+
+        List<String> allTables = new ArrayList<>();
+
+        allTables.addAll(query.getFromTables());
+
+        for (JoinClause join : query.getJoins()) {
+            allTables.add(join.getTable());
+        }
+
+        int foundIn = 0;
+
+        for (String table : allTables) {
+            if (metadataRepository.columnExists(stripAlias(table), field)) {
+                foundIn++;
+            }
+        }
+        return foundIn == 1;
     }
 }

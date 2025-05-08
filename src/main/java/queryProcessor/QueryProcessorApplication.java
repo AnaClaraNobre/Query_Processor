@@ -9,5 +9,4 @@ public class QueryProcessorApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(QueryProcessorApplication.class, args);
 	}
-
 }
