@@ -5,6 +5,10 @@ import queryProcessor.model.SQLQuery;
 
 public class OperatorGraphBuilder {
 
+    /**
+     * Constrói a árvore de operadores (grafo) a partir de um objeto SQLQuery.
+     * Cria nós para joins, seleções e projeções, aninhando-os conforme a ordem lógica da consulta.
+     */
     public OperatorNode build(SQLQuery query) {
         OperatorNode base = new OperatorNode(query.getFromTables().get(0));
 
@@ -45,10 +49,12 @@ public class OperatorGraphBuilder {
         return base;
     }
 
-    // Parser recursivo robusto para álgebra relacional
+    /**
+     * Constrói a árvore de operadores a partir de uma string de álgebra relacional.
+     * Identifica projeção, seleção, join e tabelas base de forma recursiva.
+     */
     public static OperatorNode fromRelationalAlgebra(String algebra) {
         algebra = algebra.trim();
-        // Projeção
         if (algebra.startsWith("π ")) {
             int idx = findMainOperatorParen(algebra);
             String attrs = algebra.substring(2, idx).trim();
@@ -57,7 +63,6 @@ public class OperatorGraphBuilder {
             proj.addChild(fromRelationalAlgebra(sub));
             return proj;
         }
-        // Seleção
         if (algebra.startsWith("σ ")) {
             int idx = findMainOperatorParen(algebra);
             String cond = algebra.substring(2, idx).trim();
@@ -66,9 +71,7 @@ public class OperatorGraphBuilder {
             sel.addChild(fromRelationalAlgebra(sub));
             return sel;
         }
-        // Join
         if (algebra.startsWith("(")) {
-            // Remove parênteses externos
             algebra = algebra.substring(1, algebra.length() - 1).trim();
         }
         int joinIdx = findMainJoin(algebra);
@@ -80,11 +83,12 @@ public class OperatorGraphBuilder {
             join.addChild(fromRelationalAlgebra(right));
             return join;
         }
-        // Tabela base
         return new OperatorNode(algebra);
     }
 
-    // Encontra o índice do parêntese principal após o operador (π ou σ)
+    /**
+     * Retorna o índice do primeiro parêntese após o operador principal (π ou σ).
+     */
     private static int findMainOperatorParen(String algebra) {
         for (int i = 0; i < algebra.length(); i++) {
             if (algebra.charAt(i) == '(') {
@@ -94,7 +98,9 @@ public class OperatorGraphBuilder {
         return -1;
     }
 
-    // Encontra o índice do join principal (⨝) fora de parênteses
+    /**
+     * Retorna o índice do operador de join (⨝) que está fora de parênteses.
+     */
     private static int findMainJoin(String algebra) {
         int depth = 0;
         for (int i = 0; i < algebra.length(); i++) {

@@ -5,7 +5,15 @@ import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Aplica heurísticas de otimização na álgebra relacional (ex: push-down de seleções).
+ */
 public class RelationalAlgebraOptimizer {
+    /**
+     * Aplica heurísticas de otimização (push-down de seleções) na álgebra relacional original.
+     * @param originalAlgebra Álgebra relacional original
+     * @return Álgebra relacional otimizada
+     */
     public String optimize(String originalAlgebra) {
         // Heurística avançada de push-down de seleções
         // 1. Detecta projeção no topo
@@ -35,6 +43,13 @@ public class RelationalAlgebraOptimizer {
         return originalAlgebra;
     }
 
+    /**
+     * Tenta empurrar cada condição de seleção para o lado correto do join,
+     * criando seleções mais próximas das tabelas.
+     * @param joinExpr Expressão de join
+     * @param conditions Condições de seleção
+     * @return Expressão de join otimizada
+     */
     private String pushDownSelections(String joinExpr, String[] conditions) {
         // Se for um join binário
         Pattern joinPattern = Pattern.compile("\\((.+) ⨝ ([^)]+)\\)");
@@ -77,6 +92,13 @@ public class RelationalAlgebraOptimizer {
         return joinExpr;
     }
 
+    /**
+     * Verifica se uma condição pertence a um dos lados do join,
+     * analisando se a condição menciona a tabela daquele lado.
+     * @param cond Condição
+     * @param side Lado do join (string)
+     * @return true se a condição pertence ao lado, false caso contrário
+     */
     private boolean isConditionForSide(String cond, String side) {
         // Heurística: se a condição contém o nome da tabela (antes do ponto)
         Pattern tablePattern = Pattern.compile("([A-Z_]+)\\.");

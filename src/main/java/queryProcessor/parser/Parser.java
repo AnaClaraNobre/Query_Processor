@@ -8,8 +8,18 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Responsável por fazer o parsing de uma string SQL simples para um objeto SQLQuery estruturado.
+ */
 public class Parser {
 
+    /**
+     * Faz o parsing de uma string SQL e retorna um objeto SQLQuery estruturado.
+     * Suporta SELECT, FROM, JOIN e WHERE simples.
+     * @param sql Consulta SQL em string
+     * @return Objeto SQLQuery representando a consulta
+     * @throws IllegalArgumentException se a consulta for inválida
+     */
     public SQLQuery parse(String sql) throws IllegalArgumentException {
         if (sql == null || sql.trim().isEmpty()) {
             throw new IllegalArgumentException("Consulta SQL está vazia.");
@@ -20,6 +30,7 @@ public class Parser {
         try {
             String cleanedSql = sql.trim().replaceAll("\\s+", " ").toUpperCase();
 
+            // Extrai campos do SELECT
             Pattern selectPattern = Pattern.compile("SELECT (.+?) FROM");
             Matcher selectMatcher = selectPattern.matcher(cleanedSql);
             if (selectMatcher.find()) {
@@ -31,6 +42,7 @@ public class Parser {
                 throw new IllegalArgumentException("Cláusula SELECT inválida.");
             }
 
+            // Extrai tabela principal do FROM
             Pattern fromPattern = Pattern.compile("FROM ([^\\s]+)");
             Matcher fromMatcher = fromPattern.matcher(cleanedSql);
             if (fromMatcher.find()) {
@@ -39,6 +51,7 @@ public class Parser {
                 throw new IllegalArgumentException("Cláusula FROM inválida.");
             }
 
+            // Extrai JOINs
             Pattern joinPattern = Pattern.compile("JOIN\\s+(\\w+)(?:\\s+\\w+)?\\s+ON\\s+([\\w\\.]+\\s*=\\s*[\\w\\.]+)", Pattern.CASE_INSENSITIVE);
             Matcher joinMatcher = joinPattern.matcher(cleanedSql);
             while (joinMatcher.find()) {
@@ -47,6 +60,7 @@ public class Parser {
                 query.getJoins().add(new JoinClause(table, condition));
             }
 
+            // Extrai condições do WHERE
             Pattern wherePattern = Pattern.compile("WHERE (.+)");
             Matcher whereMatcher = wherePattern.matcher(cleanedSql);
             if (whereMatcher.find()) {
@@ -63,6 +77,12 @@ public class Parser {
             throw new IllegalArgumentException("Erro ao analisar a consulta SQL: " + ex.getMessage(), ex);
         }
     }
+
+    /**
+     * Faz o parsing de uma condição simples (ex: A = B) para um objeto Condition.
+     * @param cond String da condição
+     * @return Condition estruturado
+     */
     private Condition parseCondition(String cond) {
         String[] operators = {"<=", ">=", "<>", "=", "<", ">"};
 

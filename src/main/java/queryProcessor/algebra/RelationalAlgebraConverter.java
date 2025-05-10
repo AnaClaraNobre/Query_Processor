@@ -7,8 +7,16 @@ import queryProcessor.model.JoinClause;
 import java.util.List;
 import java.util.StringJoiner;
 
+/**
+ * Converte um objeto SQLQuery em uma string de álgebra relacional.
+ */
 public class RelationalAlgebraConverter {
 
+    /**
+     * Constrói a álgebra relacional completa, combinando projeção, seleção e joins.
+     * @param query Objeto SQLQuery a ser convertido
+     * @return String representando a álgebra relacional
+     */
     public String convert(SQLQuery query) {
         StringBuilder algebra = new StringBuilder();
 
@@ -40,6 +48,11 @@ public class RelationalAlgebraConverter {
         return algebra.toString();
     }
 
+    /**
+     * Gera a parte da projeção (π) da álgebra relacional.
+     * @param fields Lista de campos a serem projetados
+     * @return String da projeção
+     */
     private String convertProjection(List<String> fields) {
         StringJoiner joiner = new StringJoiner(", ");
         for (String f : fields) {
@@ -48,6 +61,11 @@ public class RelationalAlgebraConverter {
         return "π " + joiner.toString() + " ";
     }
 
+    /**
+     * Gera a parte da seleção (σ) da álgebra relacional, agrupando condições com ∧.
+     * @param conditions Lista de condições
+     * @return String da seleção
+     */
     private String convertSelection(List<Condition> conditions) {
         if (conditions.isEmpty()) return "";
 
@@ -58,6 +76,11 @@ public class RelationalAlgebraConverter {
         return joiner.toString();
     }
 
+    /**
+     * Gera a parte dos joins (⨝) da álgebra relacional, aninhando-os.
+     * @param query Objeto SQLQuery
+     * @return String dos joins
+     */
     private String convertJoins(SQLQuery query) {
         List<String> tables = query.getFromTables();
         List<JoinClause> joins = query.getJoins();
