@@ -8,10 +8,8 @@ import queryProcessor.validator.MetadataValidator;
 import queryProcessor.algebra.RelationalAlgebraConverter;
 import queryProcessor.algebra.RelationalAlgebraOptimizer;
 import queryProcessor.plan.ExecutionPlanGenerator;
-import queryProcessor.plan.ExecutionPlanOptimizer;
 import queryProcessor.graph.OperatorGraphBuilder;
 import queryProcessor.graph.OperatorNode;
-import queryProcessor.graph.OperatorGraphOptimizer;
 import java.util.List;
 
 
@@ -30,10 +28,7 @@ public class PrincipalScreen extends JFrame {
     private final RelationalAlgebraConverter algebraConverter = new RelationalAlgebraConverter();
     private final RelationalAlgebraOptimizer algebraOptimizer = new RelationalAlgebraOptimizer();
     private final ExecutionPlanGenerator planGenerator = new ExecutionPlanGenerator();
-    private final ExecutionPlanOptimizer planOptimizer = new ExecutionPlanOptimizer();
     private final OperatorGraphBuilder graphBuilder = new OperatorGraphBuilder();
-    private final OperatorGraphOptimizer graphOptimizer = new OperatorGraphOptimizer();
-
 
     public PrincipalScreen() {
         setTitle("Processador de Consultas SQL");
@@ -78,9 +73,6 @@ public class PrincipalScreen extends JFrame {
                 executionPlanOptimizedOutput.setText("🔧 Plano de execução otimizado ainda não implementado.");
                 OperatorNode root = graphBuilder.build(query);
                 graphPanel.setOperatorTree(root);
-                // Otimização do grafo
-                OperatorNode optimizedRoot = graphOptimizer.optimize(root);
-                graphOptimizedPanel.setOperatorTree(optimizedRoot);
                 List<String> plan = planGenerator.generatePlan(root);
                 StringBuilder planText = new StringBuilder();
                 for (int i = 0; i < plan.size(); i++) {
