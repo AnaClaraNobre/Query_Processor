@@ -22,4 +22,11 @@ public class OperatorNode {
     public List<OperatorNode> getChildren() {
         return children;
     }
+
+    public void printTree(String prefix) {
+        System.out.println(prefix + label);
+        for (OperatorNode child : children) {
+            child.printTree(prefix + "    ");
+        }
+    }
 }

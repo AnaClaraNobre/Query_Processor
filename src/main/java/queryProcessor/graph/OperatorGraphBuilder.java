@@ -44,4 +44,65 @@ public class OperatorGraphBuilder {
 
         return base;
     }
+
+    // Parser recursivo robusto para álgebra relacional
+    public static OperatorNode fromRelationalAlgebra(String algebra) {
+        algebra = algebra.trim();
+        // Projeção
+        if (algebra.startsWith("π ")) {
+            int idx = findMainOperatorParen(algebra);
+            String attrs = algebra.substring(2, idx).trim();
+            String sub = algebra.substring(idx + 1, algebra.length() - 1).trim();
+            OperatorNode proj = new OperatorNode("π " + attrs);
+            proj.addChild(fromRelationalAlgebra(sub));
+            return proj;
+        }
+        // Seleção
+        if (algebra.startsWith("σ ")) {
+            int idx = findMainOperatorParen(algebra);
+            String cond = algebra.substring(2, idx).trim();
+            String sub = algebra.substring(idx + 1, algebra.length() - 1).trim();
+            OperatorNode sel = new OperatorNode("σ " + cond);
+            sel.addChild(fromRelationalAlgebra(sub));
+            return sel;
+        }
+        // Join
+        if (algebra.startsWith("(")) {
+            // Remove parênteses externos
+            algebra = algebra.substring(1, algebra.length() - 1).trim();
+        }
+        int joinIdx = findMainJoin(algebra);
+        if (joinIdx != -1) {
+            String left = algebra.substring(0, joinIdx).trim();
+            String right = algebra.substring(joinIdx + 1).trim();
+            OperatorNode join = new OperatorNode("⨝");
+            join.addChild(fromRelationalAlgebra(left));
+            join.addChild(fromRelationalAlgebra(right));
+            return join;
+        }
+        // Tabela base
+        return new OperatorNode(algebra);
+    }
+
+    // Encontra o índice do parêntese principal após o operador (π ou σ)
+    private static int findMainOperatorParen(String algebra) {
+        for (int i = 0; i < algebra.length(); i++) {
+            if (algebra.charAt(i) == '(') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // Encontra o índice do join principal (⨝) fora de parênteses
+    private static int findMainJoin(String algebra) {
+        int depth = 0;
+        for (int i = 0; i < algebra.length(); i++) {
+            char c = algebra.charAt(i);
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (c == '⨝' && depth == 0) return i;
+        }
+        return -1;
+    }
 }
